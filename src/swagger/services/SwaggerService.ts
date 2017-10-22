@@ -71,6 +71,7 @@ export class SwaggerService {
                 middleware.files(),
                 middleware.parseRequest(),
                 middleware.validateRequest(),
+                (req, res, next) => console.log('EXPRESS MIDDLEWARE'),
               );
               // .use(swaggerValidationErrorHandler)
 
