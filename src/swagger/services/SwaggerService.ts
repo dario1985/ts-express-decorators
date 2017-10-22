@@ -2,6 +2,7 @@ import {deepExtends, nameOf, Store} from "@tsed/core";
 import * as Express from "express";
 import * as Fs from "fs";
 import * as PathUtils from "path";
+import * as Express from "express";
 import {Info, Schema, Spec, Tag} from "swagger-schema-official";
 import {$log} from "ts-log-debug";
 import {
@@ -45,6 +46,16 @@ export class SwaggerService {
       }
     }
 
+    swaggerValidationErrorHandler(error: any, req: Express.Request, res: Express.Response, next: Express.NextFunction): any {
+      if (error) {
+        const errorOrEmptyObj = error || {};
+        return res.status(errorOrEmptyObj.status || 500).json({
+          message: errorOrEmptyObj.message || "Internal Server Error",
+        });
+      }
+      return next();
+    }
+
     $beforeRoutesInit(): void|Promise<void> {
       const conf = this.serverSettingsService.get<ISwaggerSettings>("swagger");
       const host = this.serverSettingsService.getHttpPort();
@@ -76,8 +87,8 @@ export class SwaggerService {
                 middleware.files(),
                 middleware.parseRequest(),
                 middleware.validateRequest(),
-              );
-              // .use(swaggerValidationErrorHandler)
+              )
+              .use(this.swaggerValidationErrorHandler);
 
               resolve();
             });
