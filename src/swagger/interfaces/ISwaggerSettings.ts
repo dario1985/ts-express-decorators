@@ -19,6 +19,7 @@ export interface ISwaggerSettings {
     cssPath?: string;
     options?: any;
     showExplorer?: boolean;
+    validate?: boolean;
     specPath?: string;
     spec?: {
         swagger?: string;
