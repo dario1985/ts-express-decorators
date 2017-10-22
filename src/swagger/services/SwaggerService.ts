@@ -31,7 +31,7 @@ export class SwaggerService {
     /**
      *
      */
-    $beforeRoutesInit(): void|Promise<void> {
+    $afterRoutesInit(): void|Promise<void> {
       const conf = this.serverSettingsService.get<ISwaggerSettings>("swagger");
       const host = this.serverSettingsService.getHttpPort();
       const path = conf && conf.path || "/docs";
@@ -56,11 +56,15 @@ export class SwaggerService {
         if (conf.specPath) {
           Fs.writeFileSync(conf.specPath, JSON.stringify(spec, null, 2));
         }
+      }
+    }
 
-        if (conf.validate) {
+    $beforeRoutesInit(): void|Promise<void> {
+      const conf = this.serverSettingsService.get<ISwaggerSettings>("swagger");
+      if (conf)
+        if (conf.validate && conf.specPath) {
           return new Promise((resolve, reject) => {
-            $log.debug(spec);
-            return this.validateMiddleware()(this.getDefaultSpec(), this.expressApplication, (err: any, middleware: any) => {
+            return this.validateMiddleware()(conf.specPath, this.expressApplication, (err: any, middleware: any) => {
               if (err) {
                 $log.error("Error when binding with the swagger middleware: $err");
                 reject("Error when binding with the swagger middleware");
@@ -71,7 +75,6 @@ export class SwaggerService {
                 middleware.files(),
                 middleware.parseRequest(),
                 middleware.validateRequest(),
-                (req, res, next) => console.log('EXPRESS MIDDLEWARE'),
               );
               // .use(swaggerValidationErrorHandler)
 
@@ -79,7 +82,6 @@ export class SwaggerService {
             });
           });
         }
-      }
     }
 
     private onRequest = (req: any, res: any, next: any) => {
