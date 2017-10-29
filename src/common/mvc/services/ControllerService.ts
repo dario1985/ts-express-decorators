@@ -61,12 +61,22 @@ export class ControllerService extends ProxyRegistry<ControllerProvider, IContro
      *
      * @param components
      */
-    public $onRoutesInit(components: { file: string, endpoint: string, classes: any[] }[]) {
+    public $onControllersInit(components: { file: string, endpoint: string, classes: any[] }[]) {
 
         $log.info("Build controllers");
 
         this.mapComponents(components);
         this.buildControllers();
+    }
+
+    /**
+     *
+     * @param components
+     */
+    public $onRoutesInit(components: { file: string, endpoint: string, classes: any[] }[]) {
+
+        $log.info("Init Routes");
+        this.mountPaths();
     }
 
     /**
@@ -109,11 +119,6 @@ export class ControllerService extends ProxyRegistry<ControllerProvider, IContro
         ControllerRegistry.forEach((provider: ControllerProvider) => {
             if (!provider.hasParent()) {
                 new ControllerBuilder(provider, defaultRoutersOptions).build();
-
-                provider.routerPaths.forEach(path => {
-                    this.expressApplication.use(provider.getEndpointUrl(path), provider.router);
-                });
-
             }
 
             const target = provider.useClass;
@@ -124,6 +129,17 @@ export class ControllerService extends ProxyRegistry<ControllerProvider, IContro
         });
 
         return this;
+    }
+
+    private mountPaths() {
+      ControllerRegistry.forEach((provider: ControllerProvider) => {
+        if (!provider.hasParent()) {
+          provider.routerPaths.forEach(path => {
+            this.expressApplication.use(provider.getEndpointUrl(path), provider.router);
+          });
+
+        }
+      });
     }
 
 }
