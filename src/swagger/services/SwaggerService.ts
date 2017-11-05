@@ -29,16 +29,6 @@ export class SwaggerService {
       return require("swagger-express-middleware");
     }
 
-    swaggerValidationErrorHandler(error: any, req: Express.Request, res: Express.Response, next: Express.NextFunction): any {
-      if (error) {
-        const errorOrEmptyObj = error || {};
-        return res.status(errorOrEmptyObj.status || 500).json({
-          message: errorOrEmptyObj.message || "Internal Server Error",
-        });
-      }
-      return next();
-    }
-
     $afterControllersInit(): void|Promise<void> {
       const conf = this.serverSettingsService.get<ISwaggerSettings>("swagger");
       const host = this.serverSettingsService.getHttpPort();
@@ -80,7 +70,6 @@ export class SwaggerService {
                 middleware.parseRequest(),
                 middleware.validateRequest(),
               )
-              .use(this.swaggerValidationErrorHandler);
 
               resolve();
             });
